@@ -1,23 +1,8 @@
-<div class="chat-container">
-  <div class="chat-header">FixBot - Assistente da IdeaFix</div>
-
-  <div id="chat-box" class="chat-box">
-    <div *ngFor="let msg of messages" [ngClass]="{'bot-message': msg.from === 'bot', 'user-message': msg.from === 'user'}">
-      <strong *ngIf="msg.from === 'bot'">Bot:</strong>
-      <strong *ngIf="msg.from === 'user'">Você:</strong>
-      <p>{{ msg.text }}</p>
-    </div>
-  </div>
-
-  <div class="input-container">
-    <input type="text" [(ngModel)]="userInput" placeholder="Escreva sua mensagem..." (keyup.enter)="sendMessage()" />
-    <button (click)="sendMessage()">Enviar</button>
-  </div>
-
-  <div class="chat-footer">
-    <small>
-      Este é um assistente com tecnologia de <strong>Inteligência Artificial</strong>.<br />
-      Ele ajuda você a encontrar informações sobre nossos serviços.
-    </small>
-  </div>
+<div *ngFor="let msg of messages" [ngClass]="{'bot-message': msg.from === 'bot', 'user-message': msg.from === 'user'}">
+  <strong *ngIf="msg.from === 'bot'">Bot:</strong>
+  <strong *ngIf="msg.from === 'user'">Você:</strong>
+  <p>{{ msg.text }}</p>
 </div>
+
+<input type="text" [(ngModel)]="userInput" placeholder="Escreva sua mensagem...">
+<button (click)="sendMessage()">Enviar</button>
