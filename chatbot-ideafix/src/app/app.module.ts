@@ -1,10 +1,9 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { FormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms'; // necessário para ngModel
 
 import { AppComponent } from './app.component';
-import { ChatComponent } from './chat/chat.component';
+import { ChatComponent } from './chat/chat.component'; // importa o seu componente
 
 @NgModule({
   declarations: [
@@ -12,9 +11,8 @@ import { ChatComponent } from './chat/chat.component';
     ChatComponent
   ],
   imports: [
-    BrowserModule,
-    FormsModule,
-    CommonModule
+    BrowserModule, // já inclui CommonModule
+    FormsModule
   ],
   providers: [],
   bootstrap: [AppComponent]
