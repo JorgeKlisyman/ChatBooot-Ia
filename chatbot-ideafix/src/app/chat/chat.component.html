@@ -1,1 +1,34 @@
-<p>chat works!</p>
+<div class="chat-container">
+  <div class="chat-header">FixBot - Assistente da IdeaFix</div>
+
+  <div class="chat-box" #chatBox>
+    <div class="bot-message">
+      <strong>Olá! Bem-vindo(a) à IdeaFix!</strong><br />
+      Somos especialistas em <strong>películas</strong>, <strong>adesivos</strong> e <strong>comunicação visual</strong>.<br />
+      Como posso te ajudar hoje?
+      <ul>
+        <li>Adesivos personalizados</li>
+        <li># Quero um orçamento</li>
+        <li>* Ver serviços oferecidos</li>
+      </ul>
+    </div>
+
+    <div *ngFor="let msg of messages">
+      <div [ngClass]="msg.from === 'user' ? 'user-message' : 'bot-message'">
+        {{ msg.text }}
+      </div>
+    </div>
+  </div>
+
+  <div class="input-container">
+    <input [(ngModel)]="userInput" (keyup.enter)="sendMessage()" placeholder="Escreva sua mensagem..." />
+    <button (click)="sendMessage()">Enviar</button>
+  </div>
+
+  <div class="chat-footer">
+    <small>
+      Este é um assistente com tecnologia de <strong>Inteligência Artificial</strong>.<br />
+      Ele ajuda você a encontrar informações sobre nossos serviços.
+    </small>
+  </div>
+</div>
