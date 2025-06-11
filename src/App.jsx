@@ -1,116 +1,113 @@
 import React, { useState, useEffect } from 'react';
-import './index.css';
-import FormularioAdesivo from './components/FormularioAdesivo';
+import ChatForm from './components/ChatForm';
+import ChatMessage from './components/ChatMessage';
 
-function Chatbot() {
-  const [mensagens, setMensagens] = useState([]);
-  const [mostrarFormulario, setMostrarFormulario] = useState(false);
-  const [digitando, setDigitando] = useState(false);
-  const [textoDigitado, setTextoDigitado] = useState('');
+const App = () => {
+  const [chatHistory, setChatHistory] = useState([]);
+  const [visible, setVisible] = useState(true);
+  const [displayedText, setDisplayedText] = useState('');
 
-  const textoCompleto = `Na apiFix, oferecemos adesivos personalizados para parede, que podem ser decorativos ou com impressão personalizada. Esses adesivos são ideais para diversos ambientes, como quartos, salas, empresas e espaços temáticos.
+  // Função para enviar histórico para API e receber resposta
+  const generateBotResponse = async (history) => {
+    // Formatando o histórico para o formato esperado pela API
+    const formattedHistory = history.map(({ role, text }) => ({
+      role,
+      parts: [{ text }],
+    }));
 
-O preço dos adesivos personalizados depende do tamanho da parede e do material escolhido. Para fornecer um orçamento preciso, precisamos das medidas da parede e do tipo de adesivo que você deseja.
+    const requestOptions = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: formattedHistory }),
+    };
 
-Se precisar de mais informações ou quiser solicitar um orçamento, fique à vontade para perguntar!
+    try {
+      const response = await fetch(import.meta.env.VITE_API_KEY, requestOptions);
+      const data = await response.json();
 
-Para melhor atendê-lo, preencha seus dados abaixo.`;
+      if (!response.ok) throw new Error(data.error?.message || 'Algo deu errado!');
 
-  const iniciarDigitacao = () => {
-    setDigitando(true);
-    setTextoDigitado('');
-    let i = 0;
+      // Pegando a resposta do assistente no formato esperado
+      const apiResponseText = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Nenhuma resposta recebida.';
 
-    const intervalo = setInterval(() => {
-      if (i < textoCompleto.length) {
-        setTextoDigitado((prev) => prev + textoCompleto.charAt(i));
-        i++;
-      } else {
-        clearInterval(intervalo);
-        setDigitando(false);
-        setMostrarFormulario(true);
-      }
-    }, 20); // velocidade da digitação
-  };
-
-  const handleOpcaoClick = (opcao) => {
-    if (opcao === 'adesivos') {
-      setMensagens([]);
-      setMostrarFormulario(false);
-      iniciarDigitacao();
+      // Adiciona a resposta do bot ao histórico
+      setChatHistory((prev) => [
+        ...prev,
+        { role: 'assistant', text: apiResponseText },
+      ]);
+    } catch (error) {
+      console.error('Erro na API:', error);
+      // Opcional: você pode mostrar uma mensagem de erro no chat
+      setChatHistory((prev) => [
+        ...prev,
+        { role: 'assistant', text: 'Desculpe, houve um erro ao tentar responder.' },
+      ]);
     }
   };
 
-  const handleFormularioSubmit = (dados) => {
-    alert(`✅ Obrigado, ${dados.nome}! Seus dados foram enviados.`);
-    setMostrarFormulario(false);
-  };
+  const fullText = 'Hey there 👋 How can I help you today?';
+
+  // Simulação do efeito "digitando" para a mensagem inicial
+  useEffect(() => {
+    if (visible) {
+      let index = 0;
+      const typingInterval = setInterval(() => {
+        setDisplayedText((prev) => prev + fullText[index]);
+        index++;
+        if (index >= fullText.length) clearInterval(typingInterval);
+      }, 40);
+
+      return () => clearInterval(typingInterval);
+    } else {
+      setDisplayedText('');
+    }
+  }, [visible]);
 
   return (
-    <div className="chatbot-container">
-      <div className="chat-header">
-        <h2>FixBot - Assistente da IdeaFixs de IA</h2>
-        <button className="close-button">×</button>
-      </div>
-
-      <div className="chat-message bot-message">
-        👋 Olá! Bem-vindo(a) à <strong>IdeaFix</strong>!<br />
-        Somos especialistas em películas, adesivos e comunicação visual.
-        <br />Como posso te ajudar hoje?
-      </div>
-
-      <div className="chat-options">
-        <button className="chat-option" onClick={() => handleOpcaoClick("adesivos")}>
-          🖼️ Adesivos personalizados
-        </button>
-        <button className="chat-option" onClick={() => alert("Em breve...")}>
-          💵 Quero um orçamento
-        </button>
-        <button className="chat-option" onClick={() => alert("Serviços disponíveis")}>
-          📦 Ver serviços oferecidos
-        </button>
-      </div>
-
-      {digitando && (
-        <div className="chat-message bot-message typing">
-          {textoDigitado}
+    <div className="Container">
+      <div className="chatbot-popup">
+        <div className="chat-header">
+          <div className="logo-text">
+            <h2 className="Chatbot">Chatbot</h2>
+          </div>
+          <button onClick={() => setVisible(!visible)}>
+            <span className="material-symbols-rounded">
+              {visible ? 'keyboard_arrow_down' : 'keyboard_arrow_up'}
+            </span>
+          </button>
         </div>
-      )}
 
-      {!digitando && textoDigitado && (
-        <div className="chat-message bot-message">
-          {textoDigitado.split('\n').map((linha, i) => (
-            <p key={i}>{linha}</p>
-          ))}
-        </div>
-      )}
+        {visible && (
+          <>
+            <div className="chat-body">
+              {/* Mensagem inicial com efeito typing */}
+              {displayedText && (
+                <div className="message bot-message">
+                  <p className="message-text">
+                    <b>{displayedText}</b>
+                  </p>
+                </div>
+              )}
 
-      {mostrarFormulario && (
-        <div className="chat-message bot-message">
-          <FormularioAdesivo onSubmit={handleFormularioSubmit} />
-        </div>
-      )}
+              {/* Histórico de mensagens do chat */}
+              {chatHistory.map((chat, index) => (
+                <ChatMessage key={index} chat={chat} />
+              ))}
+            </div>
 
-      <div className="chat-input-area">
-        <input type="text" placeholder="Escreva sua mensagem..." />
-        <button className="send-button">
-          <span className="material-symbols-rounded">send</span>
-        </button>
-      </div>
-
-      <div className="chat-footer">
-        <small>
-          Este é um assistente com tecnologia de IA. As respostas são
-          automatizadas e podem não ser sempre precisas ou completas.
-          Para obter informações mais precisas, entre em contato com o suporte.
-        </small>
+            <div className="chat-footer">
+              {/* Formulário que recebe a função para gerar resposta do bot */}
+              <ChatForm
+                chatHistory={chatHistory}
+                setChatHistory={setChatHistory}
+                generateBotResponse={generateBotResponse}
+              />
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
-}
-
-function App() {
-  return <Chatbot />;
-}
+};
 
 export default App;
