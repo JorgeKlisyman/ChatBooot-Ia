@@ -7,47 +7,45 @@ const App = () => {
   const [visible, setVisible] = useState(true);
   const [displayedText, setDisplayedText] = useState('');
 
-  // Função para enviar histórico para API e receber resposta
   const generateBotResponse = async (history) => {
-    // Formatando o histórico para o formato esperado pela API
     const formattedHistory = history.map(({ role, text }) => ({
       role,
       parts: [{ text }],
     }));
 
-    const requestOptions = {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: formattedHistory }),
-    };
-
     try {
-      const response = await fetch(import.meta.env.VITE_API_KEY, requestOptions);
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}?key=${import.meta.env.VITE_API_KEY}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: formattedHistory }),
+        }
+      );
+
       const data = await response.json();
 
-      if (!response.ok) throw new Error(data.error?.message || 'Algo deu errado!');
+      if (!response.ok) {
+        throw new Error(data.error?.message || 'Algo deu errado!');
+      }
 
-      // Pegando a resposta do assistente no formato esperado
-      const apiResponseText = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Nenhuma resposta recebida.';
+      const botText = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Resposta não recebida.';
 
-      // Adiciona a resposta do bot ao histórico
       setChatHistory((prev) => [
         ...prev,
-        { role: 'assistant', text: apiResponseText },
+        { role: 'assistant', text: botText },
       ]);
     } catch (error) {
-      console.error('Erro na API:', error);
-      // Opcional: você pode mostrar uma mensagem de erro no chat
+      console.error('Erro ao gerar resposta:', error);
       setChatHistory((prev) => [
         ...prev,
-        { role: 'assistant', text: 'Desculpe, houve um erro ao tentar responder.' },
+        { role: 'assistant', text: 'Ocorreu um erro. Tente novamente mais tarde.' },
       ]);
     }
   };
 
   const fullText = 'Hey there 👋 How can I help you today?';
 
-  // Simulação do efeito "digitando" para a mensagem inicial
   useEffect(() => {
     if (visible) {
       let index = 0;
@@ -80,7 +78,6 @@ const App = () => {
         {visible && (
           <>
             <div className="chat-body">
-              {/* Mensagem inicial com efeito typing */}
               {displayedText && (
                 <div className="message bot-message">
                   <p className="message-text">
@@ -89,14 +86,12 @@ const App = () => {
                 </div>
               )}
 
-              {/* Histórico de mensagens do chat */}
               {chatHistory.map((chat, index) => (
                 <ChatMessage key={index} chat={chat} />
               ))}
             </div>
 
             <div className="chat-footer">
-              {/* Formulário que recebe a função para gerar resposta do bot */}
               <ChatForm
                 chatHistory={chatHistory}
                 setChatHistory={setChatHistory}
